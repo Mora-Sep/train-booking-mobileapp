@@ -128,7 +128,7 @@ export default function HomeScreen({ navigation }) {
                             <Pressable onPress={showDatePicker} style={{ flex: 1 }}>
                                 <TextInput
                                     fontSize={18}
-                                    placeholder='Date'
+                                    placeholder='Select Date'
                                     placeholderTextColor="white"
                                     value={departureDate}
                                     onChangeText={setDepartureDate}
@@ -147,7 +147,7 @@ export default function HomeScreen({ navigation }) {
                                 <Pressable onPress={showDatePicker} style={{ flex: 1 }}>
                                     <TextInput
                                         fontSize={18}
-                                        placeholder='Date'
+                                        placeholder='Select Date'
                                         placeholderTextColor="white"
                                         value={returnDate}
                                         onChangeText={setReturnDate}
