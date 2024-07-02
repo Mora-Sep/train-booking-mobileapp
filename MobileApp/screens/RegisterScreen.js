@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, use
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
 import InputFeild from "../components/InputFeild";
 import { color } from '../styles/Color';
@@ -19,43 +20,35 @@ export default function RegisterScreen({ navigation }) {
     });
 
     const [date, setDate] = useState(new Date());
-    const [showPicker, setShowPicker] = useState(false)
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [dateOfBirth, setDateOfBirth] = useState("");
 
-    const toggleDatePicker = () => {
-        setShowPicker(!showPicker)
-    }
+    const showDatePicker = () => {
+        setDatePickerVisibility(true);
+    };
 
-    const onChange = ({ type }, selectedDate) => {
-        if (type == "set") {
-            const currentDate = selectedDate
-            setDate(currentDate)
-            if (Platform.OS == "android") {
-                toggleDatePicker()
-                setDateOfBirth(formatDate(currentDate))
-            }
-        } else {
-            toggleDatePicker()
-        }
-    }
+    const hideDatePicker = () => {
+        setDatePickerVisibility(false);
+    };
 
-    const confirmIOSDate = () => {
-        setDateOfBirth(formatDate(date))
-        toggleDatePicker()
-    }
+    const handleConfirm = (selectedDate) => {
+        setDate(selectedDate);
+        setDateOfBirth(formatDate(selectedDate));
+        hideDatePicker();
+    };
 
     const formatDate = (rawDate) => {
-        let date = new Date(rawDate)
-        let year = date.getFullYear()
+        let date = new Date(rawDate);
+        let year = date.getFullYear();
         let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         let month = monthNames[date.getMonth()];
-        let day = date.getDate()
+        let day = date.getDate();
 
         return `${day} ${month} ${year}`;
-    }
+    };
 
     const handleRegister = () => {
-        // registration logic 
+        // Add your registration logic here
         // After successful registration, navigate to HomeScreen
         navigation.navigate('App', { screen: 'Home' });
     };
@@ -89,37 +82,29 @@ export default function RegisterScreen({ navigation }) {
 
                 <View style={styles.dateFeild}>
                     <Ionicons name="calendar-number-outline" size={20} color="#666" style={{ marginRight: 5 }} />
-                    {showPicker && (
-                        <DateTimePicker
-                            mode='date'
-                            display='spinner'
-                            value={date}
-                            onChange={onChange}
-                            style={styles.datePicker}
+                    <Pressable onPress={showDatePicker} style={{ flex: 1 }}>
+                        <TextInput
+                            fontSize={18}
+                            placeholder='Date of Birth'
+                            value={dateOfBirth}
+                            onChangeText={setDateOfBirth}
+                            editable={false}
+                            // style={styles.textInput}
+                            style={styles.dateSelected}
                         />
-                    )}
+                    </Pressable>
 
-                    {showPicker && Platform.OS == "ios" && (
-                        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-                            <TouchableOpacity onPress={toggleDatePicker}>
-                                <Text style={[styles.pickerbutton, { backgroundColor: "#cdcccf" }, { color: "black" }]}>Cancel</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity onPress={confirmIOSDate}>
-                                <Text style={[styles.pickerbutton, { backgroundColor: "#60a0d1" }, { color: "black" }]}>Confirm</Text>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-
-                    {!showPicker && (
-                        <Pressable onPress={toggleDatePicker}>
-                            <TextInput fontSize={18} placeholder='Date of Birth' value={dateOfBirth} onChangeText={setDateOfBirth} editable={false} style={styles.dateSelected} onPressIn={toggleDatePicker} />
-                        </Pressable>
-                    )}
                 </View>
+                <DateTimePickerModal
+                    isVisible={isDatePickerVisible}
+                    mode="date"
+                    onConfirm={handleConfirm}
+                    onCancel={hideDatePicker}
+                    display='spinner'
+                />
 
                 <TouchableOpacity onPress={handleRegister}>
-                    <Text style={[styles.registerButton, dynamicStyles.button]}>Register</Text>
+                    <Text style={[styles.registerButton, , dynamicStyles.button]}>Register</Text>
                 </TouchableOpacity>
 
                 <View style={styles.backSection}>
@@ -157,10 +142,10 @@ const styles = StyleSheet.create({
         padding: 8,
         marginBottom: 25
     },
-    dateText: {
-        color: "#999999",
-        fontSize: 20
-    },
+    // dateText: {
+    //     color: "#999999",
+    //     fontSize: 20
+    // },
     registerButton: {
         padding: 8,
         borderColor: "black",
@@ -170,9 +155,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         textAlign: "center",
         ...color.theamBlue,
-        color: "black",
+        color: "white",
         fontSize: 24,
-        fontWeight: "bold"
+        fontWeight: "450"
     },
     backSection: {
         flexDirection: "row",
@@ -193,20 +178,5 @@ const styles = StyleSheet.create({
     dateSelected: {
         color: "black",
     },
-    datePicker: {
-        height: 120,
-        marginTop: -10
-    },
-    pickerbutton: {
-        paddingHorizontal: 20,
-        padding: 8,
-        borderColor: "black",
-        borderWidth: 1,
-        marginTop: 40,
-        marginBottom: 30,
-        borderRadius: 10,
-        textAlign: "center",
-        fontSize: 24,
-        fontWeight: "bold"
-    }
+    
 })
