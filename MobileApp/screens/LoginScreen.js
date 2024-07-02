@@ -89,9 +89,9 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         textAlign: "center",
         ...color.theamBlue,
-        color: "black",
+        color: "white",
         fontSize: 24,
-        fontWeight: "bold"
+        fontWeight: "450"
     },
     registerSection: {
         flexDirection: "row",
