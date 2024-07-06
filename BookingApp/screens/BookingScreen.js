@@ -6,7 +6,7 @@ import { color } from '../styles/Color';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 
 export default function BookingScreen({ navigation }) {
-    const { bookingDetails } = useContext(BookingContext);
+    const { bookingDetails, setBookingDetails } = useContext(BookingContext);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -60,6 +60,11 @@ export default function BookingScreen({ navigation }) {
         return isDepartureTrip && matchingReturnTrain;
     });
 
+    const handleProceed = (train) => {
+        setBookingDetails({ ...bookingDetails, selectedTrain: train })
+        navigation.navigate('DetailsScreen')
+    }
+
     const renderTrainItem = ({ item }) => (
         <View style={{ marginBottom: 10, padding: 10, borderWidth: 1, borderColor: '#ccc', backgroundColor: "white" }}>
             <Text style={styles.cardText}>Train ID: {item.trainId}</Text>
@@ -74,7 +79,7 @@ export default function BookingScreen({ navigation }) {
                     <Text>Available Seats  :    {classItem.availableSeats}</Text>
                 </View>
             ))}
-            <Pressable onPress={() => navigation.navigate("DetailsScreen")} style={{ ...color.theamBlue, paddingTop: 10, paddingBottom: 10, marginTop: 10, borderRadius: 10 }}>
+            <Pressable onPress={() => handleProceed(item)} style={{ ...color.theamBlue, paddingTop: 10, paddingBottom: 10, marginTop: 10, borderRadius: 10 }}>
                 <Text style={{ textAlign: "center", fontWeight: "bold", fontSize: 20, color: "white" }}>Proceed</Text>
             </Pressable>
         </View>

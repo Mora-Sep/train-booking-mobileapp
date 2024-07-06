@@ -10,6 +10,7 @@ export const BookingProvider = ({ children }) => {
         departureDate: '',
         returnDate: '',
         numPassengers: '',
+        passengerType: 'General',
         selectedClass: '',
         selectedTrain: {},
         selectedSeats: [],
