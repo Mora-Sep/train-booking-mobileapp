@@ -4,9 +4,9 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import HomeScreen from '../screens/HomeScreen';
-import BookingScreen from '../screens/BookingScreen';
 import OfferScreen from '../screens/OfferScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import BookingHistory from '../screens/BookingHistory';
 
 const Tab = createBottomTabNavigator();
 
@@ -29,10 +29,10 @@ const BottomTab = () => {
                 }}
             />
             <Tab.Screen
-                name="Booking"
-                component={BookingScreen}
+                name="History"
+                component={BookingHistory}
                 options={{
-                    tabBarLabel: "Booking",
+                    tabBarLabel: "History",
                     tabBarIcon: ({ color, size }) => {
                         return <MaterialIcons name='book-online' color={color} size={size} />;
                     }

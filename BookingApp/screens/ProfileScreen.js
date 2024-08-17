@@ -1,24 +1,88 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { useContext, useState } from "react";
+import { color } from "../styles/Color";
+import { AuthContext } from "../context/AuthContext";
 
 export default function ProfileScreen() {
-    return(
-        <View style={styles.container}>
+
+    const {logout} = useContext(AuthContext)
+
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.text}>Profile</Text>
-        </View>
+
+            <View style={styles.userImageContainer}>
+                <Image source={require("../assets/user.png")} style={styles.image} />
+                <TouchableOpacity style={styles.iconContainer}>
+                    <MaterialCommunityIcons name="camera" size={40} color="grey" />
+                </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={{paddingVertical: 20}}>
+                <Text style={{fontSize:20}}>Terms and Conditions</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {logout()}} style={{paddingVertical: 13, ...color.theamBlue, paddingHorizontal: 30, borderRadius: 15, borderWidth: 2, borderColor: "black", marginBottom: 40}}>
+                <Text style={{fontSize:20, fontWeight: "bold", color: "white"}}>Logout</Text>
+            </TouchableOpacity>
+
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        flex:1,
-        alignItem:"Center",
-        justifyContent: "center",
-        backgroundColor: "plum",
+        alignItems: "center",
+        paddingTop: 15,
+        backgroundColor: "#dadef5",
     },
     text: {
         fontSize: 24,
         fontWeight: "bold",
         marginBottom: 16,
-        textAlign:"center",
+        textAlign: "center",
+    },
+    userImageContainer: {
+        alignItems: "center",
+        justifyContent: "center",
+        paddingVertical: 20,
+    },
+    image: {
+        width: 170,
+        height: 170,
+        borderRadius: 100,
+        borderWidth: 2,
+        borderColor: "white",
+        backgroundColor: "white",
+    },
+    iconContainer: {
+        position: "absolute",
+        bottom: 15,
+        right: -9,
+    },
+    details: {
+        paddingVertical: 10,
+        paddingHorizontal: 10,
+        borderRadius: 5,
+        borderColor: "black",
+        borderWidth: 0.5,
+        backgroundColor: "#e8e8e8",
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "90%",
+        marginBottom: 8
+    },
+    input: {
+        fontSize: 18,
+        borderBottomWidth: 1,
+        borderBottomColor: 'black',
+        marginRight: 10,
+    },
+    userDetailsText: {
+        fontSize: 18,
+    },
+    userNameText: {
+        fontSize: 18
     }
-})
+});
