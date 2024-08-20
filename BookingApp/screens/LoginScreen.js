@@ -1,5 +1,5 @@
 import React, { useContext, useState } from "react";
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, useWindowDimensions, Image } from "react-native"
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, useWindowDimensions, Image, Alert } from "react-native"
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 import InputFeild from "../components/InputFeild";
@@ -24,6 +24,20 @@ export default function LoginScreen({ navigation }) {
 
     });
 
+    const handleLogin = (username, password) => {
+        if (!username || !password) {
+            Alert.alert('Data Invalid', 'Please enter required data', [
+                {
+                    text: 'OK',
+                    style: 'cancel',
+                },
+            ]);
+            return;
+        } else {
+            login(username, password)
+        }
+    }
+
     return (
         <SafeAreaView style={styles.safecontainer}>
             <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
@@ -45,7 +59,7 @@ export default function LoginScreen({ navigation }) {
                     onChangeText={text => setPassword(text)}
                 />
 
-                <TouchableOpacity onPress={() => { login(userName, password) }}>
+                <TouchableOpacity onPress={() => { handleLogin(userName, password) }}>
                     <Text style={[styles.loginButton, dynamicStyles.button]}>Login</Text>
                 </TouchableOpacity>
 
