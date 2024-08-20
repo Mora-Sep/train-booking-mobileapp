@@ -7,6 +7,7 @@ import { BookingProvider } from '../context/BookingContext';
 import BookingScreen from '../screens/BookingScreen';
 import TrainDetails from '../screens/TrainDetails';
 import SeatSelectionScreen from '../screens/SeatSelectionScreen';
+import ConditionsScreen from '../screens/ConditionsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -16,9 +17,10 @@ const AppStack = () => {
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name='Home' component={BottomTab} />
         {/* <Stack.Screen name='Profile' component={ProfileScreen} /> */}
-        {/* <Stack.Screen name='Booking' component={BookingScreen}/> */}
+        <Stack.Screen name='Booking' component={BookingScreen}/>
         <Stack.Screen name='DetailsScreen' component={TrainDetails}/>
         <Stack.Screen name='SeatSelection' component={SeatSelectionScreen}/>
+        <Stack.Screen name='Conditions' component={ConditionsScreen}/>
       </Stack.Navigator>
     </BookingProvider>
   )

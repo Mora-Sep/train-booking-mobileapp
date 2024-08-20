@@ -1,12 +1,13 @@
-import { View, Text, StyleSheet, Image, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useContext, useState } from "react";
+import Feather from "react-native-vector-icons/Feather";
 import { color } from "../styles/Color";
 import { AuthContext } from "../context/AuthContext";
 
-export default function ProfileScreen() {
+export default function ProfileScreen({navigation}) {
 
-    const {logout} = useContext(AuthContext)
+    const { logout, details } = useContext(AuthContext)
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -19,12 +20,69 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
             </View>
 
-            <TouchableOpacity style={{paddingVertical: 20}}>
-                <Text style={{fontSize:20}}>Terms and Conditions</Text>
+
+            <View style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 24, fontWeight: "600" }}>
+                    {details && details.Username ? details.Username : "Loading..."}
+                </Text>
+            </View>
+
+            <View style={{marginBottom: 15}}>
+                <Text style={{fontSize: 18}}>First Name:</Text>
+                <View style={styles.details}>
+                    <Text style={{ fontSize: 18 }}>{details && details.FirstName ? details.FirstName : "Loading..."}</Text>
+                    <TouchableOpacity>
+                        <Feather name="edit" size={25} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={{marginBottom: 15}}>
+                <Text style={{fontSize: 18}}>Last Name:</Text>
+                <View style={styles.details}>
+                    <Text style={{ fontSize: 18 }}>{details && details.LastName ? details.LastName : "Loading..."}</Text>
+                    <TouchableOpacity>
+                        <Feather name="edit" size={25} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={{marginBottom: 15}}>
+                <Text style={{fontSize: 18}}>Contact Number: </Text>
+                <View style={styles.details}>
+                    <Text style={{ fontSize: 18 }}>{details && details.Contact_Number ? details.Contact_Number : "Loading..."}</Text>
+                    <TouchableOpacity>
+                        <Feather name="edit" size={25} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={{marginBottom: 15}}>
+                <Text style={{fontSize: 18}}>Email: </Text>
+                <View style={styles.details}>
+                    <Text style={{ fontSize: 18 }}>{details && details.Email ? details.Email : "Loading..."}</Text>
+                    <TouchableOpacity>
+                        <Feather name="edit" size={25} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <View style={{marginBottom: 15}}>
+                <Text style={{fontSize: 18}}>NIC: </Text>
+                <View style={styles.details}>
+                    <Text style={{ fontSize: 18 }}>{details && details.NIC ? details.NIC : "Loading..."}</Text>
+                    <TouchableOpacity>
+                        <Feather name="edit" size={25} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <TouchableOpacity onPress={() => navigation.navigate('Conditions')}  style={{ paddingVertical: 25, paddingBottom: 50 }}>
+                <Text style={{ fontSize: 24 }}>Terms and Conditions</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={() => {logout()}} style={{paddingVertical: 13, ...color.theamBlue, paddingHorizontal: 30, borderRadius: 15, borderWidth: 2, borderColor: "black", marginBottom: 40}}>
-                <Text style={{fontSize:20, fontWeight: "bold", color: "white"}}>Logout</Text>
+            <TouchableOpacity onPress={() => { logout() }} style={{ paddingVertical: 13, ...color.theamBlue, paddingHorizontal: 30, borderRadius: 15, borderWidth: 2, borderColor: "black", marginBottom: 40 }}>
+                <Text style={{ fontSize: 22, fontWeight: "bold", color: "white" }}>Logout</Text>
             </TouchableOpacity>
 
         </ScrollView>
@@ -66,7 +124,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         borderRadius: 5,
         borderColor: "black",
-        borderWidth: 0.5,
+        borderBottomWidth: 0.5,
         backgroundColor: "#e8e8e8",
         flexDirection: "row",
         justifyContent: "space-between",
