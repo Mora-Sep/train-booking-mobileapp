@@ -1,4 +1,4 @@
-import React, { useContext, useLayoutEffect, useState } from "react";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, TouchableOpacity, Image, useWindowDimensions, Alert } from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
@@ -9,10 +9,13 @@ import { SelectList } from 'react-native-dropdown-select-list'
 import Header from "../components/Header";
 import { color } from "../styles/Color";
 import { BookingContext } from "../context/BookingContext";
+import axios from "axios";
+import { BASE_URL } from "../config";
 
 export default function HomeScreen({ navigation }) {
 
     const { bookingDetails, setBookingDetails } = useContext(BookingContext)
+    const [station, setStation] = useState([]);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -35,7 +38,9 @@ export default function HomeScreen({ navigation }) {
             )
         });
     }, []);
-    
+
+    const [date, setDate] = useState(new Date());
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
     const [activeDateField, setActiveDateField] = useState(null);
@@ -43,6 +48,7 @@ export default function HomeScreen({ navigation }) {
     const handleTripTypeChange = (type) => {
         setBookingDetails({ ...bookingDetails, tripType: type })
     }
+
 
     const showDatePicker = (field) => {
         setActiveDateField(field);
@@ -76,14 +82,28 @@ export default function HomeScreen({ navigation }) {
         return `${year}-${month}-${day}`;
     };
 
-    const stations = [
-        { key: '1', value: 'Colombo' },
-        { key: '2', value: 'Kandy' },
-        { key: '3', value: 'Ambalangoda' },
-        { key: '4', value: 'Kochikade' },
-        { key: '5', value: 'colooo' },
-        { key: '6', value: 'Ambalangodawwww' },
-    ];
+    useEffect(() => {
+        const fetchStations = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/get/stations`);
+                const stationData = response.data;
+
+                // console.log("Station Data:", stationData); // Check data structure
+
+                const formattedStations = stationData.map((station, index) => ({
+                    key: String(index + 1),
+                    value: station.Name,
+                }));
+
+                setStation(formattedStations);
+                // console.log("Formatted Stations:", formattedStations);
+            } catch (error) {
+                console.log("Error fetching stations:", error);
+            }
+        };
+        fetchStations();
+    }, []);
+
 
     const handleSearchTrain = () => {
         if (!bookingDetails.fromStation || !bookingDetails.toStation || !bookingDetails.departureDate || !bookingDetails.numPassengers) {
@@ -102,22 +122,26 @@ export default function HomeScreen({ navigation }) {
     }
 
     const findStationName = (key) => {
-        const station = stations.find(station => station.key === key);
-        return station ? station.value : "";
+        if (!Array.isArray(station)) {
+            console.error("Station data is not an array");
+            return "";
+        }
+        const stationItem = station.find(station => station.key === key);
+        return stationItem ? stationItem.value : "";
     };
 
     return (
-        <View style={{backgroundColor: "#dadef5"}}>
+        <View style={{ backgroundColor: "#dadef5" }}>
             <Header onTripTypeChange={handleTripTypeChange} />
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 <View style={[color.theamBlue, { borderRadius: 15 }]}>
 
                     <View style={{ paddingHorizontal: 10 }}>
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>From</Text>
+
                         <SelectList
                             setSelected={(key) => setBookingDetails({ ...bookingDetails, fromStation: findStationName(key) })}
-                            data={stations}
-                            // save="value"
+                            data={station} 
                             placeholder="Choose Station"
                             arrowicon={<FontAwesome name="chevron-down" size={12} color={'white'} />}
                             boxStyles={{ ...styles.inputField, borderColor: "white" }}
@@ -125,15 +149,15 @@ export default function HomeScreen({ navigation }) {
                             dropdownStyles={{ backgroundColor: color.theamBlue.backgroundColor, maxHeight: 200 }}
                             dropdownTextStyles={{ color: "white" }}
                         />
+
                     </View>
 
                     <View style={{ paddingHorizontal: 10 }}>
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>To</Text>
+                    
                         <SelectList
-                            // setSelected={setToStation}
                             setSelected={(key) => setBookingDetails({ ...bookingDetails, toStation: findStationName(key) })}
-                            data={stations}
-                            // save="value"
+                            data={station} 
                             placeholder="Choose Station"
                             arrowicon={<FontAwesome name="chevron-down" size={12} color={'white'} />}
                             boxStyles={{ ...styles.inputField, borderColor: "white" }}
@@ -167,7 +191,7 @@ export default function HomeScreen({ navigation }) {
                             <View style={styles.inputField}>
                                 <Ionicons name="calendar-number-outline" size={20} color="white" style={{ marginRight: 5 }} />
                                 <Pressable onPress={() => showDatePicker('return')} style={{ flex: 1 }}>
-                                
+
                                     <TextInput
                                         fontSize={18}
                                         placeholder='Select Date'
@@ -196,8 +220,8 @@ export default function HomeScreen({ navigation }) {
                             <TextInput
                                 placeholder="No of passengers"
                                 placeholderTextColor="white"
-                                value= {bookingDetails.numPassengers}
-                                onChangeText={(value) => setBookingDetails({...bookingDetails, numPassengers: value})}
+                                value={bookingDetails.numPassengers}
+                                onChangeText={(value) => setBookingDetails({ ...bookingDetails, numPassengers: value })}
                                 style={styles.textInput}
                                 keyboardType="numeric"
                             />
@@ -265,4 +289,3 @@ const styles = StyleSheet.create({
         fontWeight: "450"
     },
 });
-

@@ -197,6 +197,64 @@ export const trainData = [
         { classType: "Second Class", price: 550, availableSeats: 13 },
         { classType: "Third Class", price: 500, availableSeats: 13 }
       ]
-    }
+    },
+    {
+      "ID": 3,
+      "originName": "Maradana",
+      "departureDateAndTime": "14:00:00",
+      "arrivalDateAndTime": "18:00:00",
+      "destinationName": "Beliatta",
+      "durationMinutes": 240,
+      "trainName": "Galu Kumari",
+      "seatReservations": [
+          {
+              "class": "First Class",
+              "totalCount": 25,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          },
+          {
+              "class": "Second Class",
+              "totalCount": 200,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          },
+          {
+              "class": "Third Class",
+              "totalCount": 400,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          }
+      ]
+  },
+  {
+      "ID": 4,
+      "originName": "Maradana",
+      "departureDateAndTime": "14:30:00",
+      "arrivalDateAndTime": "18:00:00",
+      "destinationName": "Beliatta",
+      "durationMinutes": 210,
+      "trainName": "Ruhunu Kumari ",
+      "seatReservations": [
+          {
+              "class": "First Class",
+              "totalCount": 25,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          },
+          {
+              "class": "Second Class",
+              "totalCount": 200,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          },
+          {
+              "class": "Third Class",
+              "totalCount": 400,
+              "reservedCount": 0,
+              "bookedSeats": ""
+          }
+      ]
+  }
   ];
   
