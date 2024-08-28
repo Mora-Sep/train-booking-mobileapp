@@ -8,6 +8,7 @@ import BookingScreen from '../screens/BookingScreen';
 import TrainDetails from '../screens/TrainDetails';
 import SeatSelectionScreen from '../screens/SeatSelectionScreen';
 import ConditionsScreen from '../screens/ConditionsScreen';
+import PaymentScreen from '../screens/PaymentScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ const AppStack = () => {
         <Stack.Screen name='DetailsScreen' component={TrainDetails}/>
         <Stack.Screen name='SeatSelection' component={SeatSelectionScreen}/>
         <Stack.Screen name='Conditions' component={ConditionsScreen}/>
+        <Stack.Screen name='PaymentScreen' component={PaymentScreen}/>
       </Stack.Navigator>
     </BookingProvider>
   )
