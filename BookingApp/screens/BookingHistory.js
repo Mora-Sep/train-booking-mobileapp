@@ -36,7 +36,7 @@ export default function BookingHistory({ navigation }) {
                         Authorization: `Bearer ${userToken}`
                     }
                 });
-                setHistory(response.data);
+                setHistory(response.data || []);
                 // console.log(history);
             } catch (error) {
                 console.error("fetching history error: ", error);
@@ -45,8 +45,8 @@ export default function BookingHistory({ navigation }) {
         fetchHistory();
     }, [userToken]);
 
-    // Group tickets by bookingRefID
     const groupByBookingRefID = (history) => {
+        if (!Array.isArray(history)) return {};  
         return history.reduce((acc, ticket) => {
             const refID = ticket.bookingRefID;
             if (!acc[refID]) {
