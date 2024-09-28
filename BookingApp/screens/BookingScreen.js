@@ -49,9 +49,18 @@ export default function BookingScreen({ navigation }) {
                         returnDate: tripType === 'Round Trip' ? returnDate : undefined,
                     },
                 });
-                setTraindata(response.data);
+                // setTraindata(response.data);
+                if (Array.isArray(response.data)) {
+                    // Filter out any null or undefined items
+                    const validTrains = response.data.filter(train => train && train.ID);
+                    setTraindata(validTrains);
+                } else {
+                    console.error("Unexpected API response structure:", response.data);
+                    setTraindata([]); // Set to empty array to prevent errors
+                }
             } catch (error) {
                 console.error("Error fetching train data:", error);
+                setTraindata([]);
             }
         };
         fetchTrainData();
