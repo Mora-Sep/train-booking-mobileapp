@@ -187,7 +187,7 @@ const SeatSelectionScreen = ({ navigation }) => {
             ))}
             <Text style={styles.totalPriceText}>Total: LKR {totalPrice}</Text>
             <TouchableOpacity style={styles.buyButton} onPress={() => navigation.navigate('PaymentScreen', {totalPrice})}>
-              <Text style={styles.buyButtonText}>Buy Selected Seats</Text>
+              <Text style={styles.buyButtonText}>Book Now</Text>
             </TouchableOpacity>
           </View>
         ) : (

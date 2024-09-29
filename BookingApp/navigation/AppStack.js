@@ -9,6 +9,7 @@ import TrainDetails from '../screens/TrainDetails';
 import SeatSelectionScreen from '../screens/SeatSelectionScreen';
 import ConditionsScreen from '../screens/ConditionsScreen';
 import PaymentScreen from '../screens/PaymentScreen';
+import PaymentSuccessScreen from '../screens/PaymentSuccessScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -23,6 +24,7 @@ const AppStack = () => {
         <Stack.Screen name='SeatSelection' component={SeatSelectionScreen}/>
         <Stack.Screen name='Conditions' component={ConditionsScreen}/>
         <Stack.Screen name='PaymentScreen' component={PaymentScreen}/>
+        <Stack.Screen name='PaymentSuccessScreen' component={PaymentSuccessScreen}/>
       </Stack.Navigator>
     </BookingProvider>
   )
