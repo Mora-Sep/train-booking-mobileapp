@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { Button, View, Text, ActivityIndicator, Alert } from 'react-native';
+import { Button, View, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
 import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { BASE_URL } from '../config';
 
-const PaymentScreen = ({navigation}) => {
+const PaymentScreen = ({navigation, route}) => {
+
+  const { selectedSeats, totalPrice } = route.params;
+  // console.log(selectedSeats, totalPrice)
+
   // Hardcode the bookingRefID for now
-  const bookingRefID = 'CSPW5OO20NYH'; // Replace with any test reference ID
+  const bookingRefID = '0W86UHK3J2J4'; // Replace with any test reference ID
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
 
   const fetchPaymentIntentClientSecret = async () => {
     try {
-      // Fetch the payment intent client secret using a GET request
       const response = await fetch(`${BASE_URL}/booking/get-payment-intent?bookingRefID=${bookingRefID}`, {
         method: 'GET',
         headers: {
@@ -43,7 +46,7 @@ const PaymentScreen = ({navigation}) => {
 
     const { error } = await initPaymentSheet({
       paymentIntentClientSecret: clientSecret,
-      merchantDisplayName: 'trainticketbooking', // Replace with your chosen name
+      merchantDisplayName: 'trainticketbooking', 
     });
 
     if (error) {
@@ -62,8 +65,6 @@ const PaymentScreen = ({navigation}) => {
       console.error('Error presenting payment sheet:', error);
       Alert.alert('Payment failed', error.message);
     } else {
-      // Alert.alert('Success', 'Payment successful!');
-      // Perform post-payment actions here (e.g., navigate to a confirmation screen)
       navigation.navigate('PaymentSuccessScreen')
     }
   };
@@ -79,16 +80,38 @@ const PaymentScreen = ({navigation}) => {
 
   return (
     <StripeProvider publishableKey="pk_test_51Q3h2fGgM5IeGXpnCy4JDcSIl2Bsx5KvF80XipMjKXJ3Sg6cRgvfBZQFlVV0iPQDx9X46RpRLIADSk3cMAdp1I5G008R6cV6Pb">
-      <View style={{ padding: 20, flex: 1, justifyContent: 'center', backgroundColor: "#dadef5" }}>
-        <Text style={{ fontSize: 18, marginBottom: 20 }}>Pay for your booking</Text>
-        {loading ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : (
-          <Button title="Pay Now" onPress={handlePayPress}/>
-        )}
+      <View style={{ padding: 20, backgroundColor: "#dadef5", flex:1}}>
+        <Text style={{fontSize:20, fontWeight:"bold", marginBottom:20}}>Booking Summary:</Text>
+        {selectedSeats.map((seat, index) => (
+          <View key={index} style={styles.seatRow}>
+            <Text>{seat.class}Class</Text>
+            <Text>Cart {seat.cart}</Text>
+            <Text>Seat {seat.number}</Text>
+          </View>
+        ))}
+      <Text style={styles.totalPriceText}>Total Price: {totalPrice} LKR</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : (
+        <Button title="Pay Now" onPress={handlePayPress} />
+      )}
       </View>
     </StripeProvider>
   );
 };
+
+const styles = StyleSheet.create({
+  seatRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
+  },
+  totalPriceText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    marginBottom:50
+  }
+});
 
 export default PaymentScreen;
