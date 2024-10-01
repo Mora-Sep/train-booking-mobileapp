@@ -5,10 +5,13 @@ import FirstClassSeatLayout from '../components/FirstClassSeatLayout';
 import SecondClassSeatLayout from '../components/SecondClassSeatLayout';
 import ThirdClassSeatLayout from '../components/ThirdClassSeatLayout';
 import { BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
 
 const SeatSelectionScreen = ({ navigation }) => {
 
   const { bookingDetails} = useContext(BookingContext)
+
+  const {userToken} = useContext(AuthContext)
 
   const [currentClass, setCurrentClass] = useState(1)
   const [currentCart, setCurrentCart] = useState(1);
@@ -158,11 +161,61 @@ const SeatSelectionScreen = ({ navigation }) => {
 
   const totalPrice = selectedSeats.reduce((total, seat) => total + classPrices[seat.class], 0);
 
-  const handleProceedToCheckout = () => {
-    navigation.navigate('PaymentScreen', {
-      selectedSeats,
-      totalPrice,
-    });
+  // const handleProceedToCheckout = () => {
+  //   navigation.navigate('PaymentScreen', {
+  //     selectedSeats,
+  //     totalPrice,
+  //   });
+  // };
+
+  const handleProceedToCheckout = async () => {
+    const bookingPayload = {
+      tripID: trainID,
+      from: bookingDetails.selectedTrain.originCode,
+      to: bookingDetails.selectedTrain.destinationCode,
+      passengers: selectedSeats.map((seat, index) => ({
+        seatNumber: seat.number.toString(),
+        class: seat.class === 1 ? 'F' : seat.class === 2 ? 'S' : 'T',  
+        firstName: `Passenger ${index + 1}`,
+        lastName: `LastName ${index + 1}`,
+        isAdult: true,
+      })),
+    };
+
+    console.log(bookingPayload);
+  
+    try {
+      const response = await fetch(`${BASE_URL}/booking/user/create/booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,  
+        },
+        body: JSON.stringify(bookingPayload),
+      });
+  
+      const responseBody = await response.json();
+      console.log('Response:', responseBody);
+  
+      
+      if (!response.ok) {
+        console.error('Error response from server:', response.status, responseBody);
+        throw new Error(`Booking failed with status code ${response.status}`);
+      }
+  
+      const bookingReference = responseBody.refID;  // Assuming the booking reference is returned as refID
+      const finalPrice = responseBody.finalPrice;
+
+      navigation.navigate('PaymentScreen', {
+        bookingReference,
+        selectedSeats,
+        totalPrice,
+        finalPrice
+      });
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('Failed to create booking. Please try again.');
+    }
   };
 
   return (
@@ -204,11 +257,11 @@ const SeatSelectionScreen = ({ navigation }) => {
               <Text>{seat.class}C</Text>
               <Text>Cart {seat.cart}</Text>
               <Text>Seat {seat.number}</Text>
-              <Text>Price: {classPrices[seat.class]} LKR</Text>
+              {/* <Text>Price: {classPrices[seat.class]} LKR</Text> */}
             </View>
           ))}
         </View>
-        <Text style={styles.totalPriceText}>Total Price: {totalPrice} LKR</Text>
+        {/* <Text style={styles.totalPriceText}>Total Price: {totalPrice} LKR</Text> */}
         <TouchableOpacity
           style={styles.checkoutButton}
           onPress={handleProceedToCheckout}
@@ -307,7 +360,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#3B82F6',
     padding: 10,
     borderRadius: 5,
-    marginBottom:15
+    marginBottom:15,
+    marginTop:20
   },
   checkoutText: {
     color: '#fff',

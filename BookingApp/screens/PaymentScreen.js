@@ -5,11 +5,9 @@ import { BASE_URL } from '../config';
 
 const PaymentScreen = ({navigation, route}) => {
 
-  const { selectedSeats, totalPrice } = route.params;
-  // console.log(selectedSeats, totalPrice)
+  const { selectedSeats, bookingReference, finalPrice } = route.params;
 
-  // Hardcode the bookingRefID for now
-  const bookingRefID = '0W86UHK3J2J4'; // Replace with any test reference ID
+  const bookingRefID = bookingReference; 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
 
@@ -89,7 +87,7 @@ const PaymentScreen = ({navigation, route}) => {
             <Text>Seat {seat.number}</Text>
           </View>
         ))}
-      <Text style={styles.totalPriceText}>Total Price: {totalPrice} LKR</Text>
+      <Text style={styles.totalPriceText}>Total Price: {finalPrice} LKR</Text>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
