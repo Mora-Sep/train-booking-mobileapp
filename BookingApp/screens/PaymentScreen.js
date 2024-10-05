@@ -91,6 +91,30 @@ const PaymentScreen = ({navigation, route}) => {
     return true;
   };
 
+  const completeBooking = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/booking/complete?bookingRefID=${bookingRefID}`,{
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.log('Error completing booking:', errorResponse);
+        throw new Error('Failed to complete booking');
+      }
+
+      console.log('Booking completed successfully');
+
+    } catch (error) {
+      console.error('Error completing booking:', error);
+      Alert.alert('Error', 'Failed to complete booking.');
+    }
+  };
+
   const openPaymentSheet = async () => {
     const { error } = await presentPaymentSheet();
 
@@ -98,7 +122,8 @@ const PaymentScreen = ({navigation, route}) => {
       console.error('Error presenting payment sheet:', error);
       Alert.alert('Payment failed', error.message);
     } else {
-      navigation.navigate('PaymentSuccessScreen')
+      await completeBooking();
+      navigation.navigate('PaymentSuccessScreen');
     }
   };
 
