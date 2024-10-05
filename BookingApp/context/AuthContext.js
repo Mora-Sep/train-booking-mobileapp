@@ -92,7 +92,7 @@ export const AuthProvider = ({ children }) => {
             }
         } catch (e) {
             // console.log(`Register error: ${e}`);
-            Alert.alert('Primary key reserved', 'change username, check NIC, contact number and email.', [
+            Alert.alert('Registration Error', 'Something went wrong. Please try again.', [
                 { text: 'OK', style: 'cancel' },
             ]);
         } finally {
