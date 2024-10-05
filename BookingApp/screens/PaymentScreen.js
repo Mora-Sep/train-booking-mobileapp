@@ -1,15 +1,50 @@
-import React, { useState } from 'react';
-import { Button, View, Text, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import React, { useContext, useEffect, useState } from 'react';
+import { Button, View, Text, ActivityIndicator, Alert, StyleSheet, BackHandler } from 'react-native';
 import { StripeProvider, useStripe } from '@stripe/stripe-react-native';
 import { BASE_URL } from '../config';
+import {AuthContext} from '../context/AuthContext';
 
 const PaymentScreen = ({navigation, route}) => {
 
   const { selectedSeats, bookingReference, finalPrice } = route.params;
 
+  const {userToken} = useContext(AuthContext)
+
   const bookingRefID = bookingReference; 
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const [loading, setLoading] = useState(false);
+
+  const cancelBooking = async () => {
+    try {
+      const response = await fetch(`${BASE_URL}/booking/cancel?bookingRefID=${bookingRefID}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`, 
+        },
+      });
+
+      if (!response.ok) {
+        const errorResponse = await response.json();
+        console.log('Error response from server:', errorResponse);  
+        throw new Error('Failed to cancel booking');
+      }
+      console.log('Booking canceled successfully');
+    } catch (error) {
+      console.error('Error canceling booking:', error);
+    }
+  };
+
+  useEffect(() => {
+    const backAction = () => {
+      cancelBooking();
+      navigation.navigate('SeatSelection');
+      return true; 
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction);
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const fetchPaymentIntentClientSecret = async () => {
     try {
