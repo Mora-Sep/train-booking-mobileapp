@@ -1,5 +1,5 @@
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import { BASE_URL } from "../config";
@@ -75,6 +75,9 @@ export default function BookingHistory({ navigation }) {
                             <Text>Status: {ticket.status}</Text>
                         </View>
                     ))}
+                    <TouchableOpacity style={styles.cancelBookingButton}>
+                        <Text style={styles.cancelBookingText}>Cancel Booking</Text>
+                    </TouchableOpacity>
                 </View>
             ))}
         </ScrollView>
@@ -113,5 +116,16 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         marginBottom: 5,
+    },
+    cancelBookingButton: {
+        backgroundColor: "#26457C",
+        alignItems: "center",
+        borderRadius: 10
+    },
+    cancelBookingText: {
+        color: "white",
+        padding: 10,
+        fontWeight: "bold",
+        fontSize: 18
     }
 });
