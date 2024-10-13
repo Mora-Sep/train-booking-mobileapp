@@ -35,7 +35,7 @@ const SeatSelectionScreen = ({ navigation }) => {
   useEffect(() => {
     const fetchBookedSeats = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/booking/get/seats?from=${originName}&to=${destinationName}&frequency=${departureDate}&id=${trainID}`);
+        const response = await fetch(`${BASE_URL}/booking/get/seats?from=${originName}&to=${destinationName}&date=${departureDate}&id=${trainID}`);
         if (!response.ok) {
           throw new Error('Failed to fetch booked seats');
         }

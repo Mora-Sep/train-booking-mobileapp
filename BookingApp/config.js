@@ -1,1 +1,1 @@
-export const BASE_URL = 'http://localhost:3002/api';
+export const BASE_URL = 'https://train-booking-backend-production.up.railway.app/api';

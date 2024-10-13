@@ -45,7 +45,7 @@ export default function BookingScreen({ navigation }) {
                     params: {
                         from: fromStation,
                         to: toStation,
-                        frequency: departureDate,
+                        date: departureDate,
                         returnDate: tripType === 'Round Trip' ? returnDate : undefined,
                     },
                 });
@@ -79,12 +79,17 @@ export default function BookingScreen({ navigation }) {
             <Text style={styles.cardText}>Departure Time: {item.departureDateAndTime}</Text>
             <Text style={styles.cardText}>Arrival Time: {item.arrivalDateAndTime}</Text>
             <Text style={styles.cardText}>Classes:</Text>
-            {item.seatReservations.map((classItem, index) => (
-                <View key={index} style={styles.classContainer}>
-                    <Text>Class Type: {classItem.class}</Text>
-                    <Text>Available Seats: {classItem.totalCount}</Text>
-                </View>
-            ))}
+        
+            {item.seatReservations.map((classItem, index) => {
+                const classPrice = item.prices.find(price => price.class === classItem.class)?.price;
+                return (
+                    <View key={index} style={styles.classContainer}>
+                        <Text>Class Type: {classItem.class}</Text>
+                        <Text>Available Seats: {classItem.totalCount - classItem.reservedCount}</Text>
+                        <Text>Price: {classPrice ? `LKR ${classPrice}` : 'N/A'}</Text>
+                    </View>
+                );
+            })}
             <Pressable onPress={() => handleProceed(item)} style={styles.proceedButton}>
                 <Text style={styles.proceedButtonText}>Proceed</Text>
             </Pressable>
