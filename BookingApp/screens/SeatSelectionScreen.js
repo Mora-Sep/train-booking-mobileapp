@@ -1,94 +1,125 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { BookingContext } from "../context/BookingContext";
 import FirstClassSeatLayout from '../components/FirstClassSeatLayout';
 import SecondClassSeatLayout from '../components/SecondClassSeatLayout';
 import ThirdClassSeatLayout from '../components/ThirdClassSeatLayout';
-
-const seatData = {
-  1: [ // 1st Class
-    { cart: 1, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 2, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 3, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-  ],
-  2: [ // 2nd Class
-    { cart: 1, seats: Array.from({ length: 50 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 2, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 3, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-  ],
-  3: [ // 3rd Class
-    { cart: 1, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 2, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 3, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 4, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-    { cart: 5, seats: Array.from({ length: 40 }, (_, index) => ({ number: index + 1, status: 0 })) },
-  ],
-};
-
-// Example of booked seats
-const bookedSeats = [
-  { class: 1, cart: 1, number: 5 },
-  { class: 2, cart: 2, number: 10 },
-  { class: 3, cart: 3, number: 15 },
-];
+import { BASE_URL } from '../config';
+import { AuthContext } from '../context/AuthContext';
 
 const SeatSelectionScreen = ({ navigation }) => {
 
-  const { bookingDetails, setBookingDetails } = useContext(BookingContext)
-  const TrainName = bookingDetails.selectedTrain.trainName
+  const { bookingDetails} = useContext(BookingContext)
+
+  const {userToken} = useContext(AuthContext)
+
   const [currentClass, setCurrentClass] = useState(1)
   const [currentCart, setCurrentCart] = useState(1);
   const [selectedSeats, setSelectedSeats] = useState([]);
+  const [seatData, setSeatData] = useState({});  
+
+  const TrainName = bookingDetails.selectedTrain.trainName
+  const trainID = bookingDetails.selectedTrain.ID
+  const departureTime = bookingDetails.selectedTrain.departureDateAndTime
+  const arrivalTime = bookingDetails.selectedTrain.arrivalDateAndTime
+  const originName = bookingDetails.fromStation
+  const destinationName = bookingDetails.toStation
+  const departureDate = bookingDetails.departureDate
+
+  const firstClassPrice = parseInt(bookingDetails.selectedTrain.prices[0].price, 10);
+  const secondClassPrice = parseInt(bookingDetails.selectedTrain.prices[1].price, 10);
+  const thirdClassPrice = parseInt(bookingDetails.selectedTrain.prices[2].price, 10);
+
+  const classPrices = { 1: firstClassPrice, 2: secondClassPrice, 3: thirdClassPrice };
 
   useEffect(() => {
-    const updatedSeats = { ...seatData };
-    bookedSeats.forEach(({ class: cls, cart, number }) => {
-      const cartIndex = updatedSeats[cls].findIndex(c => c.cart === cart);
-      if (cartIndex !== -1) {
-        const seatIndex = updatedSeats[cls][cartIndex].seats.findIndex(s => s.number === number);
-        if (seatIndex !== -1) {
-          updatedSeats[cls][cartIndex].seats[seatIndex].status = 1; // 1 for booked
+    const fetchBookedSeats = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/booking/get/seats?from=${originName}&to=${destinationName}&date=${departureDate}&id=${trainID}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch booked seats');
         }
+        const data = await response.json();
+        processBookedSeats(data);
+      } catch (error) {
+        console.error('Error fetching seats:', error);
       }
+    };
+
+    fetchBookedSeats();
+  }, [originName, destinationName, trainID, BASE_URL, departureDate]);
+
+  const processBookedSeats = (data) => {
+    const updatedSeatData = {
+      1: generateSeatData(bookingDetails.selectedTrain.seatReservations[0]),
+      2: generateSeatData(bookingDetails.selectedTrain.seatReservations[1]),
+      3: generateSeatData(bookingDetails.selectedTrain.seatReservations[2]),
+    };
+
+    data.forEach((classData, classIndex) => {
+      classData.forEach((cartData, cartIndex) => {
+        cartData.forEach(seatNumber => {
+          const cart = updatedSeatData[classIndex + 1][cartIndex];
+          const seat = cart.seats.find(seat => seat.number === seatNumber);
+          if (seat) {
+            seat.status = 1; // Mark as booked
+          }
+        });
+      });
     });
-  }, []);
+
+    setSeatData(updatedSeatData);
+  };
+
+  const generateSeatData = (seatReservation) => {
+    const { totalCarts, totalCount } = seatReservation;
+    let seatData = [];
+    let seatNumber = 1;
+
+    for (let cartIndex = 0; cartIndex < totalCarts; cartIndex++) {
+      const seatsPerCart = Math.ceil(totalCount / totalCarts);
+      const cartSeats = [];
+
+      for (let seatIndex = 0; seatIndex < seatsPerCart; seatIndex++) {
+        cartSeats.push({
+          number: seatNumber++,
+          status: 0
+        });
+      }
+
+      seatData.push({
+        cart: cartIndex + 1,
+        seats: cartSeats
+      });
+    }
+
+    return seatData;
+  };
 
   const handleSeatSelection = (seat, cart) => {
     setSelectedSeats(prevSeats => {
       const isAlreadySelected = prevSeats.some(
         s => s.cart === cart && s.number === seat.number && s.class === currentClass
       );
-
-      let updatedSeats;
-
       if (isAlreadySelected) {
-        // Remove the seat from the selected seats if it's already selected
-        updatedSeats = prevSeats.filter(
+        return prevSeats.filter(
           s => !(s.cart === cart && s.number === seat.number && s.class === currentClass)
         );
       } else {
-        // Add the seat to the selected seats
-        updatedSeats = [...prevSeats, { cart, number: seat.number, class: currentClass }];
+        return [...prevSeats, { cart, number: seat.number, class: currentClass }];
       }
-
-      return updatedSeats;
     });
   };
-
-  // Use an effect to update the BookingContext when selectedSeats changes
-  useEffect(() => {
-    setBookingDetails(prevDetails => ({
-      ...prevDetails,
-      selectedSeats
-    }));
-  }, [selectedSeats]);
-
 
   const handleNextCart = () => setCurrentCart(prevCart => prevCart + 1);
   const handlePrevCart = () => setCurrentCart(prevCart => prevCart - 1);
 
   const getSeatLayout = () => {
     const data = seatData[currentClass];
+    if (!data) {
+      return <Text>Loading seat layout...</Text>;
+    }
+
     switch (currentClass) {
       case 1:
         return (
@@ -128,217 +159,219 @@ const SeatSelectionScreen = ({ navigation }) => {
     }
   };
 
+  const totalPrice = selectedSeats.reduce((total, seat) => total + classPrices[seat.class], 0);
 
-  const classPrices = { 1: 150, 2: 100, 3: 50 };
+  // const handleProceedToCheckout = () => {
+  //   navigation.navigate('PaymentScreen', {
+  //     selectedSeats,
+  //     totalPrice,
+  //   });
+  // };
 
-  // Calculate total price
-  const totalPrice = selectedSeats.reduce((total, seat) => {
-    return total + classPrices[seat.class];
-  }, 0);
+  const handleProceedToCheckout = async () => {
+    const bookingPayload = {
+      tripID: trainID,
+      from: bookingDetails.selectedTrain.originCode,
+      to: bookingDetails.selectedTrain.destinationCode,
+      passengers: selectedSeats.map((seat, index) => ({
+        seatNumber: seat.number.toString(),
+        class: seat.class === 1 ? 'F' : seat.class === 2 ? 'S' : 'T',  
+        firstName: `Passenger ${index + 1}`,
+        lastName: `LastName ${index + 1}`,
+        isAdult: true,
+      })),
+    };
+
+    console.log(bookingPayload);
+  
+    try {
+      const response = await fetch(`${BASE_URL}/booking/user/create/booking`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${userToken}`,  
+        },
+        body: JSON.stringify(bookingPayload),
+      });
+  
+      const responseBody = await response.json();
+      console.log('Response:', responseBody);
+  
+      
+      if (!response.ok) {
+        console.error('Error response from server:', response.status, responseBody);
+        throw new Error(`Booking failed with status code ${response.status}`);
+      }
+  
+      const bookingReference = responseBody.refID;  // Assuming the booking reference is returned as refID
+      const finalPrice = responseBody.finalPrice;
+
+      navigation.navigate('PaymentScreen', {
+        bookingReference,
+        selectedSeats,
+        totalPrice,
+        finalPrice
+      });
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      alert('Failed to create booking. Please try again.');
+    }
+  };
 
   return (
-
     <View style={styles.container}>
-      <ScrollView style={styles.mainContent}>
-        <Text style={styles.trainName}>{TrainName}</Text>
-        <View style={styles.classSelection}>
-          <TouchableOpacity
-            style={[styles.classButton, currentClass === 1 && styles.selectedClassButton]}
-            onPress={() => {
-              setCurrentClass(1);
-              setCurrentCart(1);
-            }}
-          >
-            <Text style={styles.classButtonText}>1st Class</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.classButton, currentClass === 2 && styles.selectedClassButton]}
-            onPress={() => {
-              setCurrentClass(2);
-              setCurrentCart(1);
-            }}
-          >
-            <Text style={styles.classButtonText}>2nd Class</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.classButton, currentClass === 3 && styles.selectedClassButton]}
-            onPress={() => {
-              setCurrentClass(3);
-              setCurrentCart(1);
-            }}
-          >
-            <Text style={styles.classButtonText}>3rd Class</Text>
-          </TouchableOpacity>
+      <ScrollView style={styles.main}>
+        <View style={styles.trainInfo}>
+          <Text style={styles.trainName}>{TrainName}</Text>
+          <View style={styles.routeInfo}>
+            <Text style={styles.routeText}>{originName}</Text>
+            <Text style={styles.routeText}>{destinationName}</Text>
+          </View>
+          <View style={styles.timeInfo}>
+            <Text style={styles.timeText}>Departure: {departureTime}</Text>
+            <Text style={styles.timeText}>Arrival: {arrivalTime}</Text>
+          </View>
         </View>
+
+        <View style={styles.classSelector}>
+          {['1st Class', '2nd Class', '3rd Class'].map((label, idx) => (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.classButton, currentClass === idx + 1 ? styles.selectedClass : null]}
+              onPress={() => {
+                setCurrentClass(idx + 1);
+                setCurrentCart(1);
+              }}
+            >
+              <Text style={styles.classText}>{label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
         {getSeatLayout()}
 
         <Text style={styles.selectedSeatsTitle}>Selected Seats:</Text>
-        {selectedSeats.length > 0 ? (
-          <View>
-            {selectedSeats.map((seat, index) => (
-              <View key={index} style={styles.selectedSeatRow}>
-                <Text style={styles.selectedSeatText}>
-                  {seat.class === 1 ? '1C' : seat.class === 2 ? '2C' : '3C'}
-                </Text>
-                <Text style={styles.selectedSeatText}>{seat.cart}</Text>
-                <Text style={styles.selectedSeatText}>{seat.number}</Text>
-                <Text style={styles.selectedSeatText}>LKR {classPrices[seat.class]}</Text>
-              </View>
-            ))}
-            <Text style={styles.totalPriceText}>Total: LKR {totalPrice}</Text>
-            <TouchableOpacity style={styles.buyButton} onPress={() => navigation.navigate('PaymentScreen', {totalPrice})}>
-              <Text style={styles.buyButtonText}>Buy Selected Seats</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <Text style={styles.noSeatsText}>No seats selected</Text>
-        )}
+        <View>
+          {selectedSeats.map((seat, index) => (
+            <View key={index} style={styles.seatRow}>
+              <Text>{seat.class}C</Text>
+              <Text>Cart {seat.cart}</Text>
+              <Text>Seat {seat.number}</Text>
+              {/* <Text>Price: {classPrices[seat.class]} LKR</Text> */}
+            </View>
+          ))}
+        </View>
+        {/* <Text style={styles.totalPriceText}>Total Price: {totalPrice} LKR</Text> */}
+        <TouchableOpacity
+          style={styles.checkoutButton}
+          onPress={handleProceedToCheckout}
+          disabled={selectedSeats.length === 0}
+        >
+          <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+        </TouchableOpacity>
 
       </ScrollView>
 
-
     </View>
-
-  )
-}
-
-export default SeatSelectionScreen;
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     flexDirection: 'row',
-    backgroundColor: '#f0f0f0',
-    padding: 5,
+    flex: 1,
+    padding: 10,
   },
-  mainContent: {
-    // flex: 10,
+  main: {
+    flex: 4,
     backgroundColor: '#fff',
     borderRadius: 10,
     padding: 10,
-    marginRight: 10,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  trainInfo: {
+    alignItems: 'center',
+    marginBottom: 10,
   },
   trainName: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1f2937',
-    textAlign: 'center',
-    marginBottom: 20,
+    color: '#1E3A8A',
   },
-  classSelection: {
+  trainImage: {
+    width: 100,
+    height: 100,
+    marginVertical: 10,
+  },
+  routeInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 20,
-  },
-  classButton: {
-    flex: 1,
-    marginHorizontal: 5,
-    padding: 10,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 5,
-  },
-  selectedClassButton: {
-    backgroundColor: '#3b82f6',
-  },
-  classButtonText: {
-    textAlign: 'center',
-    color: '#fff',
-    fontSize: 16,
-  },
-  seatLayoutContainer: {
-    flex: 1,
-  },
-  cartNavigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    width: '100%',
     marginBottom: 10,
   },
-  cartButton: {
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    backgroundColor: '#1f2937',
-    borderRadius: 5,
-  },
-  cartButtonText: {
-    color: '#fff',
-    fontSize: 14,
-  },
-  disabledButton: {
-    backgroundColor: '#9ca3af',
-  },
-  cartText: {
+  routeText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1f2937',
+    color: '#3B82F6',
   },
-  seat: {
-    width: 50,
-    height: 50,
-    margin: 5,
+  timeInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 10,
+  },
+  timeText: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  classSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginVertical: 10,
+  },
+  classButton: {
+    padding: 10,
     borderRadius: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: '#E5E7EB',
   },
-  seatText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  selectedClass: {
+    backgroundColor: '#3B82F6',
   },
-  availableSeat: {
-    backgroundColor: '#10b981',
-  },
-  bookedSeat: {
-    backgroundColor: '#ef4444',
-  },
-  selectedSeat: {
-    backgroundColor: '#fbbf24',
-  },
-  emptySpace: {
-    backgroundColor: 'transparent',
-  },
-  sidebar: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 5,
+  classText: {
+    color: '#fff',
   },
   selectedSeatsTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#1f2937',
   },
-  selectedSeatRow: {
+  seatRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 5,
   },
-  selectedSeatText: {
-    fontSize: 16,
-    color: '#1f2937',
-  },
   totalPriceText: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 10,
-    color: '#1f2937',
+    marginVertical: 10,
   },
-  buyButton: {
-    marginTop: 20,
-    backgroundColor: '#3b82f6',
-    paddingVertical: 15,
+  checkoutButton: {
+    backgroundColor: '#3B82F6',
+    padding: 10,
     borderRadius: 5,
-    marginBottom: 15
+    marginBottom:15,
+    marginTop:20
   },
-  buyButtonText: {
-    textAlign: 'center',
+  checkoutText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    textAlign: 'center',
   },
   noSeatsText: {
     color: '#9ca3af',
     fontSize: 16,
     marginBottom: 15
-  },
+  }
 });
+
+export default SeatSelectionScreen;

@@ -1,10 +1,9 @@
-import React, { createContext, useState } from 'react'
+import React, { createContext, useState } from 'react';
 
-
-export const BookingContext = createContext()
+export const BookingContext = createContext();
 
 export const BookingProvider = ({ children }) => {
-    const [bookingDetails, setBookingDetails] = useState({
+    const initialBookingDetails = {
         fromStation: '',
         toStation: '',
         departureDate: '',
@@ -15,13 +14,24 @@ export const BookingProvider = ({ children }) => {
         selectedTrain: {},
         selectedSeats: [],
         tripType: 'One Way'
-    })
+    };
 
-    const contextValue = {bookingDetails,setBookingDetails}
+    const [bookingDetails, setBookingDetails] = useState(initialBookingDetails);
 
-    return(
+    // Function to reset booking details to initial values
+    const resetBookingDetails = () => {
+        setBookingDetails(initialBookingDetails);
+    };
+
+    const contextValue = {
+        bookingDetails,
+        setBookingDetails,
+        resetBookingDetails 
+    };
+
+    return (
         <BookingContext.Provider value={contextValue}>
             {children}
         </BookingContext.Provider>
     );
-}
+};
