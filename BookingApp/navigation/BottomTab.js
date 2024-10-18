@@ -38,7 +38,7 @@ const BottomTab = () => {
                     }
                 }}
             />
-            <Tab.Screen
+            {/* <Tab.Screen
                 name='Offers'
                 component={OfferScreen}
                 options={{
@@ -47,7 +47,7 @@ const BottomTab = () => {
                         return <MaterialIcons name='celebration' color={color} size={size} />;
                     }
                 }}
-            />
+            /> */}
             <Tab.Screen
                 name='Profile'
                 component={ProfileScreen}
