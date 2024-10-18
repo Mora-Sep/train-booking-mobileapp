@@ -25,9 +25,10 @@ const mockTrainData = [
         departureDateAndTime: '2024-09-01 08:00 AM',
         arrivalDateAndTime: '2024-09-01 10:00 AM',
         seatReservations: [
-            { class: 'First Class', totalCount: 20 },
-            { class: 'Second Class', totalCount: 30 }
+            { class: 'First Class', totalCount: 20, reservedCount: 5 },
+            { class: 'Second Class', totalCount: 30, reservedCount: 15 },
         ],
+        prices: [{ class: 'First Class', price: 2000 }],
     },
 ];
 
@@ -75,6 +76,7 @@ describe('BookingScreen - One Way', () => {
         );
 
         // Wait for the no trains message
+        await waitFor(() => expect(axios.get).toHaveBeenCalledTimes(1));
         await waitFor(() => expect(getByText('No trains available for the selected criteria.')).toBeTruthy());
     });
 
@@ -96,6 +98,7 @@ describe('BookingScreen - One Way', () => {
         // Simulate user selecting a train and proceeding
         fireEvent.press(getByText('Proceed'));
 
+        // Check that the correct train was selected
         expect(mockSetBookingDetails).toHaveBeenCalledWith({
             ...mockBookingDetails,
             selectedTrain: mockTrainData[0],
