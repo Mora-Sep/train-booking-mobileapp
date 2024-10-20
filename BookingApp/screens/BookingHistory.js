@@ -1,11 +1,10 @@
 import { useContext, useEffect, useLayoutEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import { BASE_URL } from "../config";
 
 export default function BookingHistory({ navigation }) {
-
     const { userToken } = useContext(AuthContext);
     const [history, setHistory] = useState([]);
 
@@ -28,21 +27,27 @@ export default function BookingHistory({ navigation }) {
         });
     }, [navigation]);
 
+    const fetchHistory = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/booking/user/search/tickets`, {
+                headers: {
+                    Authorization: `Bearer ${userToken}`
+                }
+            });
+            setHistory(response.data || []);
+        } catch (error) {
+            console.error("Fetching history error: ", error);
+        }
+    };
+
     useEffect(() => {
-        const fetchHistory = async () => {
-            try {
-                const response = await axios.get(`${BASE_URL}/booking/user/search/tickets`, {
-                    headers: {
-                        Authorization: `Bearer ${userToken}`
-                    }
-                });
-                setHistory(response.data || []);
-                // console.log(history);
-            } catch (error) {
-                console.error("fetching history error: ", error);
-            }
-        };
-        fetchHistory();
+        fetchHistory(); 
+
+        const intervalId = setInterval(() => {
+            fetchHistory(); 
+        }, 5000);
+
+        return () => clearInterval(intervalId); 
     }, [userToken]);
 
     const groupByBookingRefID = (history) => {
@@ -58,6 +63,33 @@ export default function BookingHistory({ navigation }) {
     };
 
     const groupedHistory = groupByBookingRefID(history);
+
+    const handleCancelBooking = async (bookingRefID) => {
+        try {
+            const response = await fetch(`${BASE_URL}/booking/cancel?bookingRefID=${bookingRefID}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${userToken}`,
+                },
+            });
+    
+            if (!response.ok) {
+                const errorResponse = await response.json();
+                console.log('Error response from server:', errorResponse);
+                throw new Error('Failed to cancel booking');
+            }
+    
+            // If the cancellation is successful, update the state
+            setHistory(prevHistory => prevHistory.filter(ticket => ticket.bookingRefID !== bookingRefID));
+            Alert.alert("Success", "Your booking has been cancelled.");
+            console.log('Booking canceled successfully');
+        } catch (error) {
+            console.error('Error canceling booking:', error);
+            Alert.alert("Error", "Could not cancel your booking. Please try again.");
+        }
+    };
+    
 
     return (
         <ScrollView style={styles.container}>
@@ -75,7 +107,10 @@ export default function BookingHistory({ navigation }) {
                             <Text>Status: {ticket.status}</Text>
                         </View>
                     ))}
-                    <TouchableOpacity style={styles.cancelBookingButton}>
+                    <TouchableOpacity 
+                        style={styles.cancelBookingButton} 
+                        onPress={() => handleCancelBooking(bookingRefID)}
+                    >
                         <Text style={styles.cancelBookingText}>Cancel Booking</Text>
                     </TouchableOpacity>
                 </View>
