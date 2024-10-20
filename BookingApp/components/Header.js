@@ -1,20 +1,22 @@
 import { useContext, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, Alert } from "react-native";
 import { BookingContext } from "../context/BookingContext";
 
-export default function Header({onTripTypeChange}) {
+export default function Header({ onTripTypeChange }) {
 
     const { bookingDetails, setBookingDetails } = useContext(BookingContext);
     const { tripType } = bookingDetails;
 
     const handleTripTypeChange = (type) => {
         if (type === "One Way") {
-          setBookingDetails({ ...bookingDetails, tripType: type, returnDate: '' });
+            setBookingDetails({ ...bookingDetails, tripType: type, returnDate: '' });
+            onTripTypeChange(type);
         } else {
-          setBookingDetails({ ...bookingDetails, tripType: type });
+            // setBookingDetails({ ...bookingDetails, tripType: type });
+            Alert.alert("Not Available", "The 'Round Trip' option is currently not available.");
         }
-        onTripTypeChange(type);
-      };
+        // onTripTypeChange(type);
+    };
 
     return (
         <View style={{ height: 50, flexDirection: "row", justifyContent: "space-around", alignItems: "center", marginTop: 5, marginHorizontal: 10, gap: 10 }}>
