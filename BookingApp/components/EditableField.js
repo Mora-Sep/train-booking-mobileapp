@@ -29,15 +29,17 @@ const EditableField = ({ label, value, isEditing, onEdit, onSave }) => {
                         value={inputValue}
                         onChangeText={setInputValue}
                         autoFocus
+                        // testID="input-field"
+                        testID={`input-${label}`}
                     />
-                    <TouchableOpacity onPress={handleSave}>
+                    <TouchableOpacity onPress={handleSave} testID="save-button">
                         <Feather name="check" size={24} color="green" />
                     </TouchableOpacity>
                 </View>
             ) : (
                 <View style={styles.details}>
                     <Text style={{ fontSize: 18 }}>{value}</Text>
-                    <TouchableOpacity onPress={onEdit}>
+                    <TouchableOpacity onPress={onEdit} testID="edit-icon">
                         <Feather name="edit" size={25} />
                     </TouchableOpacity>
                 </View>
