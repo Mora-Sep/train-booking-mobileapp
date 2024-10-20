@@ -4,7 +4,6 @@ import Feather from 'react-native-vector-icons/Feather';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 
 import HomeScreen from '../screens/HomeScreen';
-import OfferScreen from '../screens/OfferScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import BookingHistory from '../screens/BookingHistory';
 
@@ -38,7 +37,7 @@ const BottomTab = () => {
                     }
                 }}
             />
-            <Tab.Screen
+            {/* <Tab.Screen
                 name='Offers'
                 component={OfferScreen}
                 options={{
@@ -47,7 +46,7 @@ const BottomTab = () => {
                         return <MaterialIcons name='celebration' color={color} size={size} />;
                     }
                 }}
-            />
+            /> */}
             <Tab.Screen
                 name='Profile'
                 component={ProfileScreen}
