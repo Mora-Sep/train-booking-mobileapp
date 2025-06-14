@@ -1,5 +1,5 @@
-import React, { useLayoutEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, TouchableOpacity, Image, useWindowDimensions } from "react-native";
+import React, { useContext, useEffect, useLayoutEffect, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, TouchableOpacity, Image, useWindowDimensions, Alert } from "react-native";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import FontAwesome from 'react-native-vector-icons/FontAwesome'
@@ -8,8 +8,14 @@ import { SelectList } from 'react-native-dropdown-select-list'
 
 import Header from "../components/Header";
 import { color } from "../styles/Color";
+import { BookingContext } from "../context/BookingContext";
+import axios from "axios";
+import { BASE_URL } from "../config";
 
 export default function HomeScreen({ navigation }) {
+
+    const { bookingDetails, setBookingDetails } = useContext(BookingContext)
+    const [station, setStation] = useState([]);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -34,20 +40,18 @@ export default function HomeScreen({ navigation }) {
     }, []);
 
     const [date, setDate] = useState(new Date());
+
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-    const [departureDate, setDepartureDate] = useState("");
-    const [returnDate, setReturnDate] = useState("")
 
-    const [fromStaion, setFromStation] = useState("");
-    const [toStaion, setToStation] = useState("");
-
-    const [tripType, setTripType] = useState("One Way")
+    const [activeDateField, setActiveDateField] = useState(null);
 
     const handleTripTypeChange = (type) => {
-        setTripType(type)
+        setBookingDetails({ ...bookingDetails, tripType: type })
     }
 
-    const showDatePicker = () => {
+
+    const showDatePicker = (field) => {
+        setActiveDateField(field);
         setDatePickerVisibility(true);
     };
 
@@ -55,48 +59,89 @@ export default function HomeScreen({ navigation }) {
         setDatePickerVisibility(false);
     };
 
-    const handleDepartureDate = (selectedDate) => {
-        setDate(selectedDate);
-        setDepartureDate(formatDate(selectedDate));
-        hideDatePicker();
-    };
-
-    const handleReturnDate = (selectedDate) => {
-        setReturnDate(formatDate(selectedDate));
+    const handleConfirmDate = (selectedDate) => {
+        if (activeDateField === 'departure') {
+            setBookingDetails({ ...bookingDetails, departureDate: formatDate(selectedDate) });
+        } else if (activeDateField === 'return') {
+            setBookingDetails({ ...bookingDetails, returnDate: formatDate(selectedDate) });
+        }
         hideDatePicker();
     };
 
     const formatDate = (rawDate) => {
         let date = new Date(rawDate);
         let year = date.getFullYear();
-        let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        let month = monthNames[date.getMonth()];
+        let monthNum = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+        let month = monthNum[date.getMonth()];
         let day = date.getDate();
 
-        return `${day} ${month} ${year}`;
+        if (day < 10) {
+            day = `0${day}`;
+        }
+
+        return `${year}-${month}-${day}`;
     };
 
-    const stations = [
-        { key: '1', value: 'Colombo' },
-        { key: '2', value: 'Kandy' },
-        { key: '3', value: 'Ambalangoda' },
-        { key: '4', value: 'Kochikade' },
-        { key: '5', value: 'colooo' },
-        { key: '6', value: 'Ambalangodawwww' },
-    ];
+    useEffect(() => {
+        const fetchStations = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/get/stations`);
+                const stationData = response.data;
+
+                // console.log("Station Data:", stationData); // Check data structure
+
+                const formattedStations = stationData.map((station, index) => ({
+                    key: String(index + 1),
+                    value: station.Name,
+                }));
+
+                setStation(formattedStations);
+                // console.log("Formatted Stations:", formattedStations);
+            } catch (error) {
+                console.log("Error fetching stations:", error);
+            }
+        };
+        fetchStations();
+    }, []);
+
+
+    const handleSearchTrain = () => {
+        if (!bookingDetails.fromStation || !bookingDetails.toStation || !bookingDetails.departureDate || !bookingDetails.numPassengers) {
+            Alert.alert('Invalid Details', 'Please enter all the details', [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed'),
+                    style: 'cancel',
+                },
+                { text: 'OK', onPress: () => console.log('OK Pressed') },
+            ]);
+        }
+        else {
+            navigation.navigate('Booking')
+        }
+    }
+
+    const findStationName = (key) => {
+        if (!Array.isArray(station)) {
+            console.error("Station data is not an array");
+            return "";
+        }
+        const stationItem = station.find(station => station.key === key);
+        return stationItem ? stationItem.value : "";
+    };
 
     return (
-        <View>
+        <View style={{ backgroundColor: "#dadef5" }}>
             <Header onTripTypeChange={handleTripTypeChange} />
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 <View style={[color.theamBlue, { borderRadius: 15 }]}>
 
                     <View style={{ paddingHorizontal: 10 }}>
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>From</Text>
+
                         <SelectList
-                            setSelected={setFromStation}
-                            data={stations}
-                            // save="value"
+                            setSelected={(key) => setBookingDetails({ ...bookingDetails, fromStation: findStationName(key) })}
+                            data={station} 
                             placeholder="Choose Station"
                             arrowicon={<FontAwesome name="chevron-down" size={12} color={'white'} />}
                             boxStyles={{ ...styles.inputField, borderColor: "white" }}
@@ -104,14 +149,15 @@ export default function HomeScreen({ navigation }) {
                             dropdownStyles={{ backgroundColor: color.theamBlue.backgroundColor, maxHeight: 200 }}
                             dropdownTextStyles={{ color: "white" }}
                         />
+
                     </View>
 
                     <View style={{ paddingHorizontal: 10 }}>
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>To</Text>
+                    
                         <SelectList
-                            setSelected={setToStation}
-                            data={stations}
-                            // save="value"
+                            setSelected={(key) => setBookingDetails({ ...bookingDetails, toStation: findStationName(key) })}
+                            data={station} 
                             placeholder="Choose Station"
                             arrowicon={<FontAwesome name="chevron-down" size={12} color={'white'} />}
                             boxStyles={{ ...styles.inputField, borderColor: "white" }}
@@ -125,13 +171,13 @@ export default function HomeScreen({ navigation }) {
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>Departure</Text>
                         <View style={styles.inputField}>
                             <Ionicons name="calendar-number-outline" size={20} color="white" style={{ marginRight: 5 }} />
-                            <Pressable onPress={showDatePicker} style={{ flex: 1 }}>
+                            <Pressable onPress={() => showDatePicker('departure')} style={{ flex: 1 }}>
                                 <TextInput
                                     fontSize={18}
                                     placeholder='Select Date'
                                     placeholderTextColor="white"
-                                    value={departureDate}
-                                    onChangeText={setDepartureDate}
+                                    value={bookingDetails.departureDate}
+                                    onChangeText={(value) => setBookingDetails({ ...bookingDetails, departureDate: value })}
                                     editable={false}
                                     style={styles.textInput}
                                 />
@@ -139,18 +185,19 @@ export default function HomeScreen({ navigation }) {
                         </View>
                     </View>
 
-                    {tripType === "Round Trip" && (
+                    {bookingDetails.tripType === "Round Trip" && (
                         <View style={{ paddingHorizontal: 10 }}>
                             <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>Return</Text>
                             <View style={styles.inputField}>
                                 <Ionicons name="calendar-number-outline" size={20} color="white" style={{ marginRight: 5 }} />
-                                <Pressable onPress={showDatePicker} style={{ flex: 1 }}>
+                                <Pressable onPress={() => showDatePicker('return')} style={{ flex: 1 }}>
+
                                     <TextInput
                                         fontSize={18}
                                         placeholder='Select Date'
                                         placeholderTextColor="white"
-                                        value={returnDate}
-                                        onChangeText={setReturnDate}
+                                        value={bookingDetails.returnDate}
+                                        onChangeText={(value) => setBookingDetails({ ...bookingDetails, returnDate: value })}
                                         editable={false}
                                         style={styles.textInput}
                                     />
@@ -162,7 +209,7 @@ export default function HomeScreen({ navigation }) {
                     <DateTimePickerModal
                         isVisible={isDatePickerVisible}
                         mode="date"
-                        onConfirm={tripType === "Round Trip" ? handleReturnDate : handleDepartureDate}
+                        onConfirm={handleConfirmDate}
                         onCancel={hideDatePicker}
                     />
 
@@ -170,21 +217,28 @@ export default function HomeScreen({ navigation }) {
                         <Text style={{ color: "white", paddingTop: 10, fontSize: 18 }}>No of Passengers</Text>
                         <Pressable style={styles.inputField}>
                             <MaterialIcons name="people-outline" size={24} color="white" />
-                            <TextInput placeholder="No of passengers" placeholderTextColor="white" style={styles.textInput} />
+                            <TextInput
+                                placeholder="No of passengers"
+                                placeholderTextColor="white"
+                                value={bookingDetails.numPassengers}
+                                onChangeText={(value) => setBookingDetails({ ...bookingDetails, numPassengers: value })}
+                                style={styles.textInput}
+                                keyboardType="numeric"
+                            />
                         </Pressable>
                     </View>
 
                 </View>
 
-                <TouchableOpacity onPress={() => navigation.navigate('Booking')}>
-                    <Text style={[styles.searchButton, {marginTop: 80}]}>SEARCH TRAIN</Text>
+                <TouchableOpacity onPress={handleSearchTrain}>
+                    <Text style={[styles.searchButton, { marginTop: 80 }]}>SEARCH TRAIN</Text>
                 </TouchableOpacity>
 
-                <View style={{backgroundColor:"#e6e6e6", paddingTop: 20}}>
-                    <Text style={{color:"#26457C", fontSize: 30, fontWeight: "600", textAlign: "center"}}>Warrent Passenger</Text>
-                    <TouchableOpacity style={{marginHorizontal: 20}}>
-                    <Text style={[styles.searchButton, {marginTop: 40}]}>WARRENT TICKET</Text>
-                </TouchableOpacity>
+                <View style={{ backgroundColor: "#e6e6e6", paddingTop: 20 }}>
+                    <Text style={{ color: "#26457C", fontSize: 30, fontWeight: "600", textAlign: "center" }}>Warrent Passenger</Text>
+                    <TouchableOpacity style={{ marginHorizontal: 20 }}>
+                        <Text style={[styles.searchButton, { marginTop: 40 }]}>WARRENT TICKET</Text>
+                    </TouchableOpacity>
                 </View>
 
             </ScrollView>
@@ -194,9 +248,9 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
     container: {
-        marginTop: 25,
+        marginTop: 20,
         marginHorizontal: 25,
-        marginBottom: 100
+        marginBottom: 30
     },
     inputField: {
         flexDirection: "row",

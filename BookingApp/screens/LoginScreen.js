@@ -1,11 +1,18 @@
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, useWindowDimensions } from "react-native"
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import React, { useContext, useState } from "react";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, useWindowDimensions, Image, Alert } from "react-native"
 import Ionicons from 'react-native-vector-icons/Ionicons'
 
 import InputFeild from "../components/InputFeild";
 import { color } from '../styles/Color';
+import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
+
+    const [userName, setUserName] = useState(null);
+    const [password, setPassword] = useState(null);
+
+    const { login } = useContext(AuthContext);
+
     const windowWidth = useWindowDimensions().width;
 
     const buttonWidth = windowWidth * 0.1;
@@ -17,10 +24,19 @@ export default function LoginScreen({ navigation }) {
 
     });
 
-    const handleLogin = () => {
-        // After successful login, navigate to HomeScreen
-        navigation.navigate('App', { screen: 'Home' });
-    };
+    const handleLogin = (username, password) => {
+        if (!username || !password) {
+            Alert.alert('Data Invalid', 'Please enter required data', [
+                {
+                    text: 'OK',
+                    style: 'cancel',
+                },
+            ]);
+            return;
+        } else {
+            login(username, password)
+        }
+    }
 
     return (
         <SafeAreaView style={styles.safecontainer}>
@@ -28,19 +44,27 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.text}>Welcome Back</Text>
 
                 <InputFeild
-                    lable={'Email address'}
-                    icon={<MaterialIcons name="alternate-email" size={20} color="#666" style={{ marginRight: 5 }} />}
-                    keyboardType="email-address"
+                    lable={'User-Name'}
+                    icon={<Ionicons name="person-outline" size={20} color="#666" style={{ marginRight: 5 }} />}
+                    value={userName}
+                    onChangeText={text => setUserName(text)}
                 />
+
 
                 <InputFeild
                     lable={'Password'}
                     icon={<Ionicons name="lock-closed-outline" size={20} color="#666" style={{ marginRight: 5 }} />}
                     inputType="password"
+                    value={password}
+                    onChangeText={text => setPassword(text)}
                 />
 
-                <TouchableOpacity onPress={handleLogin}>
+                <TouchableOpacity onPress={() => { handleLogin(userName, password) }}>
                     <Text style={[styles.loginButton, dynamicStyles.button]}>Login</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+                    <Text style={styles.forgotpasswordText}>Forgot Password?</Text>
                 </TouchableOpacity>
 
                 <View style={styles.registerSection}>
@@ -51,7 +75,7 @@ export default function LoginScreen({ navigation }) {
                 </View>
 
             </ScrollView>
-        </SafeAreaView>
+        </SafeAreaView >
     )
 }
 
@@ -60,10 +84,12 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "white",
         justifyContent: "center",
-        paddingHorizontal: 30,
+        paddingHorizontal: 15,
+        paddingVertical: 15,
+        paddingTop: 25
     },
     scrollContainer: {
-        paddingTop: 40
+        //paddingTop: 40
     },
     text: {
         fontSize: 30,
@@ -108,5 +134,12 @@ const styles = StyleSheet.create({
         fontSize: 18,
         color: "#1554d1",
         marginHorizontal: 10
+    },
+    forgotpasswordText: {
+        fontSize: 18,
+        color: "#1554d1",
+        textAlign: "center",
+        marginBottom: 20,
+        fontWeight: "500"
     }
 })
